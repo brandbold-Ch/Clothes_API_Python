@@ -1,12 +1,11 @@
 from pydantic import BaseModel, Field, validator, root_validator
 from typing import List, Optional
-from bson import ObjectId
+from bson.objectid import ObjectId
 
 
 # Primary class
-
 class BaseClass(BaseModel):
-    ID: str = Field(default_factory=lambda: str(ObjectId()), alias="ID")
+    ID: str = Field(alias="ID", default_factory=lambda: str(ObjectId()))
     title: str
     count: int
     size: str
@@ -16,6 +15,7 @@ class BaseClass(BaseModel):
     age_range: int
 
 
+# Sons
 class T_Shirts(BaseClass):
     pass
 
