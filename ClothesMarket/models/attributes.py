@@ -1,14 +1,15 @@
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from bson.objectid import ObjectId
 
 
 # Primary class
 class BaseClass(BaseModel):
-    ID: str = Field(alias="ID", default_factory=lambda: str(ObjectId()))
+    ID: str = Field(default_factory=lambda: ObjectId(), alias="_id")
     title: str
     count: int
     size: str
+    price: int
     colors: List[str]
     image: str
     gender: str
@@ -46,13 +47,13 @@ class Footwear(BaseClass):
 
 # Secondary class or class market
 class Articles(BaseModel):
-    t_shirts: Optional[List[T_Shirts]] = None
-    shorts: Optional[List[Shorts]] = None
-    shirts: Optional[List[Shirts]] = None
-    pants: Optional[List[Pants]] = None
-    shoes: Optional[List[Shoes]] = None
-    dresses: Optional[List[Dresses]] = None
-    footwear: Optional[List[Footwear]] = None
+    t_shirts: List[dict]
+    shorts: List[dict]
+    shirts: List[dict]
+    pants: List[dict]
+    shoes: List[dict]
+    dresses: List[dict]
+    footwear: List[dict]
 
 
 class Clothing_Store(BaseModel):

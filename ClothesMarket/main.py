@@ -4,7 +4,7 @@ from models.attributes import *
 import motor.motor_asyncio
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
-from typing import Optional
+from typing import Optional, Any
 
 # --------------------------------Star app--------------------------------------
 
@@ -17,7 +17,8 @@ CONSTANTS = [
     JSONResponse(status_code=500, content={"message": "Unknown error"}),
     JSONResponse(status_code=200, content={"message": "Success added"}),
     JSONResponse(status_code=500, content={"message": "Unknown product"}),
-    JSONResponse(status_code=500, content={"message": "Unknown branch"})
+    JSONResponse(status_code=400, content={"message": "Unknown branch"}),
+    JSONResponse(status_code=500, content={"message": "Error in search"})
 ]
 
 
@@ -63,38 +64,38 @@ async def new_branch(data: Clothing_Store):
 # --------------------------------Métodos POST de productos--------------------------
 
 @root.post("/branch/{id}/t_shirts/person/{person}")
-async def set_t_shirts(t_shirts: T_Shirts, id: str, person: str, identify="t_shirts"):
-    return await put_products(data=t_shirts, branch=id, usage=person, keygen=identify)
+async def set_t_shirts(t_shirts: T_Shirts, id: str, person: str):
+    return await put_products(data=t_shirts, branch=id, usage=person, keygen="t_shirts")
 
 
 @root.post("/branch/{id}/shorts/person/{person}")
-async def set_shorts(shorts: Shorts, id: str, person: str, identify="shorts"):
-    return await put_products(data=shorts, branch=id, usage=person, keygen=identify)
+async def set_shorts(shorts: Shorts, id: str, person: str):
+    return await put_products(data=shorts, branch=id, usage=person, keygen="shorts")
 
 
 @root.post("/branch/{id}/shirts/person/{person}")
-async def set_shirts(shirts: Shirts, id: str, person: str, identify="shirts"):
-    return await put_products(data=shirts, branch=id, usage=person, keygen=identify)
+async def set_shirts(shirts: Shirts, id: str, person: str):
+    return await put_products(data=shirts, branch=id, usage=person, keygen="shirts")
 
 
 @root.post("/branch/{id}/pants/person/{person}")
-async def set_pants(pants: Pants, id: str, person: str, identify="pants"):
-    return await put_products(data=pants, branch=id, usage=person, keygen=identify)
+async def set_pants(pants: Pants, id: str, person: str):
+    return await put_products(data=pants, branch=id, usage=person, keygen="pants")
 
 
 @root.post("/branch/{id}/shoes/person/{person}")
-async def set_shoes(shoes: Shoes, id: str, person: str, identify="shoes"):
-    return await put_products(data=shoes, branch=id, usage=person, keygen=identify)
+async def set_shoes(shoes: Shoes, id: str, person: str):
+    return await put_products(data=shoes, branch=id, usage=person, keygen="shoes")
 
 
 @root.post("/branch/{id}/dresses/person/{person}")
-async def set_dresses(dresses: Dresses, id: str, person: str, identify="dresses"):
-    return await put_products(data=dresses, branch=id, usage=person, keygen=identify)
+async def set_dresses(dresses: Dresses, id: str, person: str):
+    return await put_products(data=dresses, branch=id, usage=person, keygen="dresses")
 
 
 @root.post("/branch/{id}/footwear/person/{person}")
-async def set_footwear(footwear: Footwear, id: str, person: str, identify="footwear"):
-    return await put_products(data=footwear, branch=id, usage=person, keygen=identify)
+async def set_footwear(footwear: Footwear, id: str, person: str):
+    return await put_products(data=footwear, branch=id, usage=person, keygen="footwear")
 
 
 # ----------------------------Agregar datos Inventario--------------------------
@@ -110,22 +111,26 @@ async def put_products(data, branch: str, usage: str, keygen: str) -> JSONRespon
 
 
 @root.put("/branch/{id}/")
-async def change_info(id: str, ID: str, t_shirts: T_Shirts):
+async def change_info(id: str, ID: str, t_shirts: T_Shirts) -> None:
     db = connection_primary()
     info = db.table.update_one({"_id": ObjectId(id)}, {"ID": "string"}, {"$set": {"women.t_shirts": jsonable_encoder(t_shirts)}})
     print(info)
 
-# ----------------------------Obtener datos de una Sucursal---------------------------
+
+# ----------------------------Obtener datos de una Sucursal con query's---------------------------
 
 @root.get("/branch/{id}")
-async def get_branch(id: str, person: Optional[str] = None, product: Optional[str] = None):
+async def get_branch(id: str, person: Optional[str] = None, product: Optional[str] = None) -> dict[Any, Any]:
     info = await GET_JSON_DB(id=id)
 
-    if person is None and product is None:
-        return info
+    try:
+        if person is None and product is None:
+            return info
 
-    elif person is not None and product is None:
-        return {person: info[person]}
+        elif person is not None and product is None:
+            return {person: info[person]}
 
-    elif person is not None and product is not None:
-        return {person: info[person][product]}
+        elif person is not None and product is not None:
+            return {person: info[person][product]}
+    except:
+        return CONSTANTS[5]
