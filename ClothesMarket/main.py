@@ -1,14 +1,39 @@
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request, Form, Depends
+from fastapi.responses import JSONResponse, RedirectResponse
 from models.attributes import *
 import motor.motor_asyncio
 from fastapi.encoders import jsonable_encoder
 from bson import ObjectId
-from typing import Optional, Any
+from typing import Optional, Any, Dict
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
 
 # --------------------------------Star app--------------------------------------
 
 root = FastAPI()
+#templates = Jinja2Templates(directory="templates")
+#root.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# -------------------------------Middleware's-----------------------------------
+
+@root.middleware("http")
+async def my_middleware(request: Request, call_next):
+    print(f"Accediendo a {request.url}")
+    response = await call_next(request)
+    return response
+
+
+# --------------------------------------Authentication-----------------------------
+
+def authentication(request: Request) -> dict[str, Any]:
+    def function_decorator(*args):
+        print("Holi")
+        return get_branch
+
+    return function_decorator
+
 
 # -------------------------------Constantes de uso común------------------------
 
@@ -119,8 +144,9 @@ async def change_info(id: str, ID: str, t_shirts: T_Shirts) -> None:
 
 # ----------------------------Obtener datos de una Sucursal con query's---------------------------
 
-@root.get("/branch/{id}")
-async def get_branch(id: str, person: Optional[str] = None, product: Optional[str] = None) -> dict[Any, Any]:
+@authentication
+@root.post("/branch/{id}")
+async def get_branch(request: Request, id: str, person: Optional[str] = None, product: Optional[str] = None):
     info = await GET_JSON_DB(id=id)
 
     try:
