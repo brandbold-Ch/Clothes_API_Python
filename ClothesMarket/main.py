@@ -186,6 +186,7 @@ async def get_branch(id: str, person: Optional[str] = None, product: Optional[st
 
         elif person is not None and product is not None:
             return JSONResponse(status_code=200, content={person: info[person][product]})
-    except:
+    except Exception as error:
+        print(error)
         return JSONResponse(status_code=500, content={"message": "Unknown error"})
 
