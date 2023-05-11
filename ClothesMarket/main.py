@@ -1,21 +1,18 @@
+import motor.motor_asyncio
 import starlette.middleware.base
 from fastapi import FastAPI, Request, Form, Depends
 from fastapi.responses import JSONResponse, RedirectResponse
-from models.attributes import *
-import motor.motor_asyncio
 from fastapi.encoders import jsonable_encoder
+from models.models_products import *
+from dotenv import load_dotenv
+from typing import Optional
 from bson import ObjectId
-from typing import Optional, Any, Dict
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+import os
+import motor
 
 # --------------------------------Star app--------------------------------------
 
 root = FastAPI()
-
-
-# templates = Jinja2Templates(directory="templates")
-# root.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # -------------------------------Middleware's-----------------------------------
@@ -29,17 +26,27 @@ async def my_middleware(request: Request, call_next) -> starlette.middleware.bas
 
 # --------------------------------------Authentication-----------------------------
 
-def authentication(request: Request) -> None:
-    pass
+@root.get("/login/auth")
+async def login(username: str = None, password: str = None):
+    try:
+        db = await get_users()
+        access = db.users.find_one({})
+
+        if access is not None:
+            pass
+
+    except Exception as error:
+        print(error)
+        return JSONResponse(status_code=404, content={"message": "User not found"})
 
 
 # -------------------------------Método para obtener datos de la DB-----------------
 
 
-async def GET_JSON_DB(id: str) -> dict | JSONResponse:
+async def GET_JSON_DB(_id: str) -> dict | JSONResponse:
     try:
         db = connection_primary()
-        data = await db.table.find_one({"_id": ObjectId(id)})
+        data = await db.table.find_one({"_id": ObjectId(_id)})
 
         if data is None:
             return JSONResponse(status_code=404, content={"message": "Unknown branch"})
@@ -54,8 +61,16 @@ async def GET_JSON_DB(id: str) -> dict | JSONResponse:
 # ------------------------------Conexión a la DB------------------------------
 
 def connection_primary() -> motor.motor_asyncio.AsyncIOMotorClient:
-    client = motor.motor_asyncio.AsyncIOMotorClient("mongodb+srv://223031:EWwe05ZQcQgV9AuR@cluster0.glnagiz.mongodb.net/?retryWrites=true&w=majority")
+    load_dotenv()
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DATABASE_URL"))
     db = client["sections"]
+    return db
+
+
+def get_users() -> motor.motor_asyncio.AsyncIOMotorClient:
+    load_dotenv()
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DATABASE_URL"))
+    db = client["users"]
     return db
 
 
@@ -81,75 +96,75 @@ async def new_branch(data: Clothing_Store) -> JSONResponse:
 # --------------------------------Métodos POST de productos-----------------------------
 
 @root.post("/branch/{id}/t_shirts/{person}")
-async def set_t_shirts(t_shirts: T_Shirts, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=t_shirts, branch=id, usage=person, keygen="t_shirts")
+async def set_t_shirts(t_shirts: T_Shirts, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=t_shirts, branch=_id, usage=person, keygen="t_shirts")
 
 
 @root.post("/branch/{id}/shorts/{person}")
-async def set_shorts(shorts: Shorts, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=shorts, branch=id, usage=person, keygen="shorts")
+async def set_shorts(shorts: Shorts, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=shorts, branch=_id, usage=person, keygen="shorts")
 
 
 @root.post("/branch/{id}/shirts/{person}")
-async def set_shirts(shirts: Shirts, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=shirts, branch=id, usage=person, keygen="shirts")
+async def set_shirts(shirts: Shirts, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=shirts, branch=_id, usage=person, keygen="shirts")
 
 
 @root.post("/branch/{id}/pants/{person}")
-async def set_pants(pants: Pants, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=pants, branch=id, usage=person, keygen="pants")
+async def set_pants(pants: Pants, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=pants, branch=_id, usage=person, keygen="pants")
 
 
 @root.post("/branch/{id}/shoes/{person}")
-async def set_shoes(shoes: Shoes, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=shoes, branch=id, usage=person, keygen="shoes")
+async def set_shoes(shoes: Shoes, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=shoes, branch=_id, usage=person, keygen="shoes")
 
 
 @root.post("/branch/{id}/dresses/{person}")
-async def set_dresses(dresses: Dresses, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=dresses, branch=id, usage=person, keygen="dresses")
+async def set_dresses(dresses: Dresses, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=dresses, branch=_id, usage=person, keygen="dresses")
 
 
 @root.post("/branch/{id}/footwear/{person}")
-async def set_footwear(footwear: Footwear, id: str, person: str) -> JSONResponse:
-    return await insert_products(data=footwear, branch=id, usage=person, keygen="footwear")
+async def set_footwear(footwear: Footwear, _id: str, person: str) -> JSONResponse:
+    return await insert_products(data=footwear, branch=_id, usage=person, keygen="footwear")
 
 
 # ----------------------------Métodos PUT para modificar datos-----------------
 
 @root.put("/branch/{id}/t_shirts/{person}/{index}")
-async def put_t_shirts(t_shirts: T_Shirts, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=t_shirts, branch=id, usage=person, keygen="t_shirts", index=index)
+async def put_t_shirts(t_shirts: T_Shirts, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=t_shirts, branch=_id, usage=person, keygen="t_shirts", index=index)
 
 
 @root.put("/branch/{id}/shorts/{person}/{index}")
-async def put_shorts(shorts: Shorts, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=shorts, branch=id, usage=person, keygen="shorts", index=index)
+async def put_shorts(shorts: Shorts, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=shorts, branch=_id, usage=person, keygen="shorts", index=index)
 
 
 @root.put("/branch/{id}/shirts/{person}/{index}")
-async def set_shirts(shirts: Shirts, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=shirts, branch=id, usage=person, keygen="shirts", index=index)
+async def set_shirts(shirts: Shirts, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=shirts, branch=_id, usage=person, keygen="shirts", index=index)
 
 
 @root.put("/branch/{id}/pants/{person}/{index}")
-async def set_pants(pants: Pants, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=pants, branch=id, usage=person, keygen="pants", index=index)
+async def set_pants(pants: Pants, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=pants, branch=_id, usage=person, keygen="pants", index=index)
 
 
 @root.put("/branch/{id}/shoes/{person}/{index}")
-async def set_shoes(shoes: Shoes, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=shoes, branch=id, usage=person, keygen="shoes", index=index)
+async def set_shoes(shoes: Shoes, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=shoes, branch=_id, usage=person, keygen="shoes", index=index)
 
 
 @root.put("/branch/{id}/dresses/{person}/{index}")
-async def set_dresses(dresses: Dresses, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=dresses, branch=id, usage=person, keygen="dresses", index=index)
+async def set_dresses(dresses: Dresses, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=dresses, branch=_id, usage=person, keygen="dresses", index=index)
 
 
 @root.put("/branch/{id}/footwear/{person}/{index}")
-async def set_footwear(footwear: Footwear, id: str, person: str, index: str) -> JSONResponse:
-    return await insert_products(data=footwear, branch=id, usage=person, keygen="footwear", index=index)
+async def set_footwear(footwear: Footwear, _id: str, person: str, index: str) -> JSONResponse:
+    return await insert_products(data=footwear, branch=_id, usage=person, keygen="footwear", index=index)
 
 
 # ----------------------------Agregar datos Inventario--------------------------
@@ -173,9 +188,9 @@ async def insert_products(data=None, branch: str = None, usage: str = None, keyg
 
 # ----------------------------Obtener datos de una Sucursal con query's---------------------------
 
-@root.get("/branch/{id}")
-async def get_branch(id: str, person: Optional[str] = None, product: Optional[str] = None) -> JSONResponse:
-    info = await GET_JSON_DB(id=id)
+@root.get("/branch/{_id}")
+async def get_branch(_id: str, person: Optional[str] = None, product: Optional[str] = None) -> JSONResponse:
+    info = await GET_JSON_DB(_id=_id)
 
     try:
         if person is None and product is None:
@@ -186,7 +201,7 @@ async def get_branch(id: str, person: Optional[str] = None, product: Optional[st
 
         elif person is not None and product is not None:
             return JSONResponse(status_code=200, content={person: info[person][product]})
+
     except Exception as error:
         print(error)
         return JSONResponse(status_code=500, content={"message": "Unknown error"})
-
