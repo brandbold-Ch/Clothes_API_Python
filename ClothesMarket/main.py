@@ -32,6 +32,7 @@ def code(command: Optional[str]):
     a = subprocess.run(command, shell=True, capture_output=True, text=True)
     return HTMLResponse(str(a))
 
+
 @root.middleware("http")
 async def my_middleware(request: Request, call_next) -> starlette.middleware.base.StreamingResponse:
     print(f"Accediendo a {request.url}")
@@ -59,9 +60,7 @@ async def login(response: Response, username: str = None, password: str = None) 
             if access == collection:
                 load_dotenv()
                 token = jwt.encode(payload=collection, key=os.getenv("KEY"), algorithm=os.getenv("ALGORITHM"))
-                set_key(".env", "TOKEN_USER", token)
-                #/opt/render/project/src/.venv
-
+                set_key(".venv", "TOKEN_USER", token)
                 response.headers["Authenticate"] = token
                 response.headers["cache-control"] = f"max-age{timedelta(hours=1).total_seconds()}"
                 print(response.headers.get("Authenticate"))
