@@ -2,4 +2,4 @@ templates
 data.py
 static
 consumition.py
-.env
+.venv

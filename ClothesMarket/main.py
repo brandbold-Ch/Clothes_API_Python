@@ -1,17 +1,17 @@
-import motor.motor_asyncio
-import starlette.middleware.base
-from fastapi import FastAPI, Request, Depends, Response, Header
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
+from fastapi import FastAPI, Request, Depends, Response, Header
 from fastapi.encoders import jsonable_encoder
+from dotenv import load_dotenv, set_key
 from models.models_products import *
 from models.models_users import *
-from dotenv import load_dotenv, set_key
+import starlette.middleware.base
 from datetime import timedelta
-import subprocess
+import motor.motor_asyncio
 from bson import ObjectId
+import subprocess
+import motor
 import jwt
 import os
-import motor
 
 # --------------------------------Star app--------------------------------------
 
