@@ -75,7 +75,7 @@ async def login(response: Response, username: str = None, password: str = None) 
 
 def authorization(request: Request):
     load_dotenv()
-    print("tk ", os.getenv("TOKEN_USER"))
+    print("token: ", os.getenv("TOKEN_USER"))
     return True
 
 
