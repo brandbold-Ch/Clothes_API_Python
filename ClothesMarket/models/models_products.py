@@ -1,22 +1,22 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional
+from pydantic import BaseModel
+from typing import Optional
 from bson.objectid import ObjectId
 
 
 # Primary class
 class BaseClass(BaseModel):
-    _id: str = lambda: str(ObjectId())
+    _ID: str = str(ObjectId())
     title: str
     count: int
-    size: str
+    size: list[str]
     price: int
-    colors: List[str]
+    colors: list[str]
     image: str
     gender: str
-    age_range: int
+    age_range: list[int]
 
 
-# Sons
+# Son's
 class T_Shirts(BaseClass):
     pass
 
@@ -47,20 +47,21 @@ class Footwear(BaseClass):
 
 # Secondary class or class market
 class Articles(BaseModel):
-    t_shirts: List[dict]
-    shorts: List[dict]
-    shirts: List[dict]
-    pants: List[dict]
-    shoes: List[dict]
-    dresses: List[dict]
-    footwear: List[dict]
+    t_shirts: list[dict]
+    shorts: list[dict]
+    shirts: list[dict]
+    pants: list[dict]
+    shoes: list[dict]
+    dresses: list[dict]
+    footwear: list[dict]
 
 
 class Clothing_Store(BaseModel):
     _id: str
+    name_branch: str
     women: Optional[Articles] = None
     men: Optional[Articles] = None
     boys: Optional[Articles] = None
     girls: Optional[Articles] = None
     guys: Optional[Articles] = None
-    girlsteen: Optional[Articles] = None
+    girls_teen: Optional[Articles] = None

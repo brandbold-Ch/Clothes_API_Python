@@ -549,6 +549,3 @@ from bson import ObjectId
 
 #access = data[0]["women"][0]["shorts"][1]
 #print(access, "\n", len(access))
-
-a = ObjectId()
-print(a)

@@ -1,14 +1,14 @@
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi import FastAPI, Request, Depends, Response, Header
+from dotenv import load_dotenv, set_key, dotenv_values
 from fastapi.encoders import jsonable_encoder
-from dotenv import load_dotenv, set_key
 from models.models_products import *
 from models.models_users import *
-import starlette.middleware.base
 from datetime import timedelta
 import motor.motor_asyncio
 from bson import ObjectId
 import subprocess
+import dotenv
 import motor
 import jwt
 import os
@@ -17,12 +17,17 @@ import os
 
 root = FastAPI()
 
+# -----------------------------Constants---------------------------------------
+
+BRANCH_TABLE = "Branch"
+USERS_TABLE = "Users"
+
 
 # -------------------------------Create User------------------------------------
 
 @root.post("/create/user")
 async def create_user(add: Users):
-    return await insert(table=add, database=connection_secondary())
+    return await insert(table=add, database=connection_primary(dbtable=USERS_TABLE))
 
 
 # -------------------------------Middleware's-----------------------------------
@@ -34,9 +39,10 @@ def code(command: Optional[str]):
 
 
 @root.middleware("http")
-async def my_middleware(request: Request, call_next) -> starlette.middleware.base.StreamingResponse:
+async def my_middleware(request: Request, call_next):
     print(f"Accediendo a {request.url}")
     response = await call_next(request)
+    print(type(response))
     return response
 
 
@@ -50,7 +56,7 @@ async def login(response: Response, username: str = None, password: str = None) 
             "password": password
         }
 
-        db = connection_secondary()
+        db = connection_primary(dbtable=USERS_TABLE)
         access: dict = await db.table.find_one(collection)
 
         if access is not None:
@@ -61,9 +67,10 @@ async def login(response: Response, username: str = None, password: str = None) 
                 load_dotenv()
                 token = jwt.encode(payload=collection, key=os.getenv("KEY"), algorithm=os.getenv("ALGORITHM"))
                 set_key(".venv", "TOKEN_USER", token)
+                dotenv_values("TOKEN_USER")
                 response.headers["Authenticate"] = token
                 response.headers["cache-control"] = f"max-age{timedelta(hours=1).total_seconds()}"
-                print(response.headers.get("Authenticate"))
+                print("Header: ", response.headers.get("Authenticate"))
                 return RedirectResponse(url="/branch/")
         else:
             return JSONResponse(status_code=404, content={"message": "User not found"})
@@ -81,10 +88,9 @@ def authorization(request: Request):
 
 # -------------------------------Método para obtener datos de la DB-----------------
 
-
 async def GET_JSON_DB(_id: str) -> dict | JSONResponse:
     try:
-        db = connection_primary()
+        db = connection_primary(dbtable=BRANCH_TABLE)
         data = await db.table.find_one({"_id": ObjectId(_id)})
 
         if data is None:
@@ -100,17 +106,10 @@ async def GET_JSON_DB(_id: str) -> dict | JSONResponse:
 
 # ------------------------------Conexión a la DB------------------------------
 
-def connection_primary() -> motor.motor_asyncio.AsyncIOMotorClient:
+def connection_primary(dbtable: str) -> motor.motor_asyncio.AsyncIOMotorClient:
     load_dotenv()
-    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DATABASE_URL"))
-    db = client["sections"]
-    return db
-
-
-def connection_secondary() -> motor.motor_asyncio.AsyncIOMotorClient:
-    load_dotenv()
-    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DATABASE_URL"))
-    db = client["users"]
+    client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017/")
+    db = client[dbtable]
     return db
 
 
@@ -130,7 +129,9 @@ async def insert(table, database: motor) -> JSONResponse:
 
 @root.post("/new_branch")
 async def new_branch(data: Clothing_Store) -> JSONResponse:
-    return await insert(table=data, database=connection_primary())
+    load_dotenv()
+    print(os.getenv("DATABASE_URL"))
+    return await insert(table=data, database=connection_primary(dbtable=BRANCH_TABLE))
 
 
 # --------------------------------Métodos POST de productos-----------------------------
@@ -211,7 +212,7 @@ async def set_footwear(footwear: Footwear, _id: str, person: str, index: str) ->
 
 async def insert_products(data=None, branch: str = None, usage: str = None, keygen: str = None, index: str = None) -> JSONResponse:
     try:
-        db = connection_primary()
+        db = connection_primary(dbtable=BRANCH_TABLE)
         path_insert = f"{usage}.{keygen}"
         path_update = f"{usage}.{keygen}.{index}"
 
@@ -220,7 +221,7 @@ async def insert_products(data=None, branch: str = None, usage: str = None, keyg
             return JSONResponse(status_code=201, content={"message": "Added information"})
         else:
             db.table.update_one({"_id": ObjectId(branch)}, {"$set": {path_update: jsonable_encoder(data)}})
-            return JSONResponse(status_code=201, content={"message": "Added information"})
+            return JSONResponse(status_code=201, content={"message": "Modified information"})
 
     except Exception as error:
         print(error)
