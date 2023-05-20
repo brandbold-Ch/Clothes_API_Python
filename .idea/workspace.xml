@@ -6,10 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="fe5d1be2-7c60-4b50-beea-8c3b530b4a63" name="Changes" comment="Update">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClothesMarket/consumition.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClothesMarket/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/ClothesMarket/data.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ClothesMarket/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/ClothesMarket/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ClothesMarket/models/models_products.py" beforeDir="false" afterPath="$PROJECT_DIR$/ClothesMarket/models/models_products.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -119,7 +116,14 @@
       <option name="project" value="LOCAL" />
       <updated>1684045018655</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Update">
+      <created>1684213599559</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1684213599559</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="UnknownFeatures">

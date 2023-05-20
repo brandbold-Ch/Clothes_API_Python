@@ -1,10 +1,10 @@
 from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi import FastAPI, Request, Depends, Response, Header
-from dotenv import load_dotenv, set_key, dotenv_values
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.encoders import jsonable_encoder
+from dotenv import load_dotenv, set_key
 from models.models_products import *
 from models.models_users import *
-from datetime import timedelta
 import motor.motor_asyncio
 from bson import ObjectId
 import subprocess
@@ -16,6 +16,7 @@ import os
 # --------------------------------Star app--------------------------------------
 
 root = FastAPI()
+security_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # -----------------------------Constants---------------------------------------
 
@@ -42,7 +43,6 @@ def code(command: Optional[str]):
 async def my_middleware(request: Request, call_next):
     print(f"Accediendo a {request.url}")
     response = await call_next(request)
-    print(type(response))
     return response
 
 
@@ -55,7 +55,6 @@ async def login(response: Response, username: str = None, password: str = None) 
             "username": username,
             "password": password
         }
-
         db = connection_primary(dbtable=USERS_TABLE)
         access: dict = await db.table.find_one(collection)
 
@@ -67,10 +66,7 @@ async def login(response: Response, username: str = None, password: str = None) 
                 load_dotenv()
                 token = jwt.encode(payload=collection, key=os.getenv("KEY"), algorithm=os.getenv("ALGORITHM"))
                 set_key(".venv", "TOKEN_USER", token)
-                dotenv_values("TOKEN_USER")
-                response.headers["Authenticate"] = token
-                response.headers["cache-control"] = f"max-age{timedelta(hours=1).total_seconds()}"
-                print("Header: ", response.headers.get("Authenticate"))
+                response.headers["Authorization"] = token
                 return RedirectResponse(url="/branch/")
         else:
             return JSONResponse(status_code=404, content={"message": "User not found"})
@@ -82,7 +78,8 @@ async def login(response: Response, username: str = None, password: str = None) 
 
 def authorization(request: Request):
     load_dotenv()
-    print("token: ", os.getenv("TOKEN_USER"))
+    print("token: ", os.environ.get("TOKEN_USER"))
+    print("token: ", request.headers.get("Authorization"))
     return True
 
 
@@ -108,7 +105,7 @@ async def GET_JSON_DB(_id: str) -> dict | JSONResponse:
 
 def connection_primary(dbtable: str) -> motor.motor_asyncio.AsyncIOMotorClient:
     load_dotenv()
-    client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017/")
+    client = motor.motor_asyncio.AsyncIOMotorClient(os.getenv("DATABASE_URL"))
     db = client[dbtable]
     return db
 
@@ -130,7 +127,6 @@ async def insert(table, database: motor) -> JSONResponse:
 @root.post("/new_branch")
 async def new_branch(data: Clothing_Store) -> JSONResponse:
     load_dotenv()
-    print(os.getenv("DATABASE_URL"))
     return await insert(table=data, database=connection_primary(dbtable=BRANCH_TABLE))
 
 
